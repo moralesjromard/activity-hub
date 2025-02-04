@@ -259,42 +259,44 @@ export const FoodPost = ({ isOpen, onClose, post }: FoodPostProps) => {
                               )}
                             </span>
                           </div>
-                          <div className="absolute top-0 right-0">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8"
-                                >
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent>
-                                <DropdownMenuItem
-                                  className="cursor-pointer"
-                                  onClick={() =>
-                                    handleOpenUpdateReviewModal({
-                                      reviewId: review.id,
-                                      comment: review.comment,
-                                    })
-                                  }
-                                >
-                                  <Pencil className="mr-2 h-4 w-4" /> Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  className="!text-red-600 cursor-pointer"
-                                  onClick={() =>
-                                    handleDeleteReview({
-                                      foodReviewId: review.id,
-                                    })
-                                  }
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" /> Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
+                          {user?.id === review.profiles.user_id && (
+                            <div className="absolute top-0 right-0">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                  >
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                  <DropdownMenuItem
+                                    className="cursor-pointer"
+                                    onClick={() =>
+                                      handleOpenUpdateReviewModal({
+                                        reviewId: review.id,
+                                        comment: review.comment,
+                                      })
+                                    }
+                                  >
+                                    <Pencil className="mr-2 h-4 w-4" /> Edit
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="!text-red-600 cursor-pointer"
+                                    onClick={() =>
+                                      handleDeleteReview({
+                                        foodReviewId: review.id,
+                                      })
+                                    }
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          )}
                           <p className="text-sm mt-1">{review.comment}</p>
                         </div>
                       </div>
