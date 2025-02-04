@@ -284,8 +284,8 @@ export const PokemonPost: React.FC<PokemonPostProps> = ({
             </div>
 
             {/* Right side */}
-            <div className="w-[55%] flex flex-col bg-white">
-              <header className="p-6 border-b bg-gray-50">
+            <div className="w-[55%] flex flex-col bg-background">
+              <header className="p-6 border-b bg-background">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold flex items-center gap-2">
                     Pokemon Reviews
@@ -303,7 +303,7 @@ export const PokemonPost: React.FC<PokemonPostProps> = ({
                     {reviews.map((review) => (
                       <div
                         key={review.id}
-                        className="rounded-xl p-4 transition-colors duration-200 bg-muted/50 border-b relative"
+                        className="p-4 transition-colors duration-200 bg-muted/50 border-b relative"
                       >
                         <div className="flex items-start gap-3">
                           <Avatar className="h-10 w-10 ring-2 ring-white">
@@ -313,10 +313,10 @@ export const PokemonPost: React.FC<PokemonPostProps> = ({
                           </Avatar>
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <span className="font-semibold text-gray-900">
+                              <span className="font-semibold text-primary">
                                 {review.profiles.name}
                               </span>
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-muted-foreground">
                                 {formatDistanceToNow(
                                   new Date(review.created_at),
                                   {
@@ -325,48 +325,50 @@ export const PokemonPost: React.FC<PokemonPostProps> = ({
                                 )}
                               </span>
                             </div>
-                            <p className="mt-2 text-gray-700 leading-relaxed">
+                            <p className="mt-2 text-gray-700 leading-relaxed text-muted dark:text-gray-200">
                               {review.comment}
                             </p>
                           </div>
                         </div>
 
-                        <div className="absolute top-4 right-4">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                              >
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                              <DropdownMenuItem
-                                className="cursor-pointer"
-                                onClick={() =>
-                                  handleOpenUpdateReviewModal({
-                                    reviewId: review.id,
-                                    comment: review.comment,
-                                  })
-                                }
-                              >
-                                <Pencil className="mr-2 h-4 w-4" /> Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="!text-red-600 cursor-pointer"
-                                onClick={() => {
-                                  handleDeleteReview({
-                                    pokemonReviewId: review.id,
-                                  });
-                                }}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" /> Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
+                        {user?.id === review.profiles.user_id && (
+                          <div className="absolute top-4 right-4">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                >
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent>
+                                <DropdownMenuItem
+                                  className="cursor-pointer"
+                                  onClick={() =>
+                                    handleOpenUpdateReviewModal({
+                                      reviewId: review.id,
+                                      comment: review.comment,
+                                    })
+                                  }
+                                >
+                                  <Pencil className="mr-2 h-4 w-4" /> Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className="!text-red-600 cursor-pointer"
+                                  onClick={() => {
+                                    handleDeleteReview({
+                                      pokemonReviewId: review.id,
+                                    });
+                                  }}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -384,7 +386,7 @@ export const PokemonPost: React.FC<PokemonPostProps> = ({
               </ScrollArea>
 
               {/* Review Input Section */}
-              <div className="p-6 border-t bg-gray-50">
+              <div className="p-6 border-t bg-background">
                 <Textarea
                   placeholder="Share your experience with this Pokemon..."
                   value={newReview}
