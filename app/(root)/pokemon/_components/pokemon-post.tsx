@@ -325,7 +325,7 @@ export const PokemonPost: React.FC<PokemonPostProps> = ({
                                 )}
                               </span>
                             </div>
-                            <p className="mt-2 text-gray-700 leading-relaxed text-muted dark:text-gray-200">
+                            <p className="mt-2 text-gray-700 leading-relaxed dark:text-gray-200">
                               {review.comment}
                             </p>
                           </div>
