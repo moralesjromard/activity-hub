@@ -20,16 +20,18 @@ export const getTasksByUserId = async (userId: string) => {
 
 export const createTask = async ({
   content,
+  priorityLevel,
   userId,
 }: {
   content: string;
+  priorityLevel: string;
   userId: string;
 }) => {
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("tasks")
-    .insert([{ content, user_id: userId }]);
+    .insert([{ content, user_id: userId, priority_level: priorityLevel }]);
 
   if (error) {
     return {
@@ -82,16 +84,18 @@ export const updateTaskCompletion = async (isDone: boolean, id: number) => {
 
 export const updateTaskContent = async ({
   content,
+  priorityLevel,
   taskId,
 }: {
   content: string;
+  priorityLevel: string;
   taskId: number;
 }) => {
   const supabase = await createClient();
 
   const { error } = await supabase
     .from("tasks")
-    .update({ content })
+    .update({ content, priority_level: priorityLevel })
     .match({ id: taskId });
 
   if (error) {

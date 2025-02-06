@@ -32,15 +32,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-import { updateTaskContent } from "@/actions/task";
+import { createTask, updateTaskContent } from "@/actions/task";
+import { useUserStore } from "@/store/user-store";
 
 type SelectedTask = {
   taskId: number;
   content: string;
-  priorityLevel: string;
 };
 
-interface updateSecretMessageModalProps {
+interface CreateTaskModalProps {
   setIsOpen: (newValue: boolean) => void;
   isOpen: boolean;
   updateMessagesList: () => void;
@@ -56,14 +56,15 @@ const formSchema = z.object({
   }),
 });
 
-export const UpdateSecretMessageModal = ({
+export const CreateTaskModal = ({
   setIsOpen,
   isOpen,
   updateMessagesList,
   selectedTask,
-}: updateSecretMessageModalProps) => {
-  const [isPending, startTransition] = useTransition();
+}: CreateTaskModalProps) => {
+  const { user } = useUserStore();
 
+  const [isPending, startTransition] = useTransition();
   const [priorityLevel, setPriorityLevel] = useState("");
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -75,11 +76,13 @@ export const UpdateSecretMessageModal = ({
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!user?.id) return null;
+
     startTransition(() => {
-      updateTaskContent({
-        taskId: selectedTask?.taskId,
+      createTask({
         content: values.newContent,
         priorityLevel: values.priorityLevel,
+        userId: user?.id,
       }).then((res) => {
         if (res.error) {
           form.setError("newContent", {
@@ -104,23 +107,19 @@ export const UpdateSecretMessageModal = ({
   };
 
   useEffect(() => {
-    form.setValue("priorityLevel", priorityLevel);
-  }, [priorityLevel]);
+    form.setValue("newContent", selectedTask.content);
+  }, [isOpen]);
 
   useEffect(() => {
-    form.setValue("newContent", selectedTask.content);
-    form.setValue("priorityLevel", selectedTask.priorityLevel);
-    setPriorityLevel(selectedTask.priorityLevel);
-  }, [isOpen]);
+    form.setValue("priorityLevel", priorityLevel);
+  }, [priorityLevel]);
 
   return (
     <Dialog onOpenChange={setIsOpen} open={isOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Update task</DialogTitle>
-          <DialogDescription>
-            Update the content of the task you selected.
-          </DialogDescription>
+          <DialogTitle>Add task</DialogTitle>
+          <DialogDescription>Add your task here.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -136,7 +135,7 @@ export const UpdateSecretMessageModal = ({
                   <FormControl>
                     <Input
                       className="w-full h-12"
-                      placeholder="Update task content"
+                      placeholder="What's on your mind?"
                       {...field}
                     />
                   </FormControl>
@@ -144,23 +143,32 @@ export const UpdateSecretMessageModal = ({
                 </FormItem>
               )}
             />
-            <FormControl>
-              <Select
-                value={priorityLevel}
-                onValueChange={(value: any) => {
-                  setPriorityLevel(value);
-                }}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Filter tasks by priority level" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="LOW">LOW</SelectItem>
-                  <SelectItem value="MEDIUM">MEDIUM</SelectItem>
-                  <SelectItem value="HIGH">HIGH</SelectItem>
-                </SelectContent>
-              </Select>
-            </FormControl>
+            <FormField
+              control={form.control}
+              name="priorityLevel"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Select
+                      value={priorityLevel}
+                      onValueChange={(value: any) => {
+                        setPriorityLevel(value);
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select priority level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="LOW">LOW</SelectItem>
+                        <SelectItem value="MEDIUM">MEDIUM</SelectItem>
+                        <SelectItem value="HIGH">HIGH</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </form>
           <DialogFooter>
             <Button
@@ -169,7 +177,7 @@ export const UpdateSecretMessageModal = ({
               disabled={isPending}
             >
               {isPending && <LoaderCircle className="h-5 w-5 animate-spin" />}
-              {isPending ? "Updating task..." : "Update task"}
+              {isPending ? "Adding task..." : "Add task"}
             </Button>
           </DialogFooter>
         </Form>

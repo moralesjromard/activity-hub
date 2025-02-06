@@ -28,6 +28,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -54,12 +55,14 @@ import {
 } from "@/actions/task";
 
 import { cn } from "@/lib/utils";
+import { CreateTaskModal } from "./_components/create-task-modal";
 
 type Task = {
   id: number;
   content: string;
   user_id: string;
   is_done: boolean;
+  priority_level: string;
 };
 
 const TodoPage = () => {
@@ -68,9 +71,14 @@ const TodoPage = () => {
   const [isPending, startTransition] = useTransition();
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState({ taskId: 0, content: "" });
+  const [selectedTask, setSelectedTask] = useState({
+    taskId: 0,
+    content: "",
+    priorityLevel: "",
+  });
 
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [task, setTask] = useState<string>("");
@@ -83,6 +91,7 @@ const TodoPage = () => {
   const filteredTasks = tasks.filter((task) => {
     if (filter === "active") return !task.is_done;
     if (filter === "completed") return task.is_done;
+
     return true;
   });
 
@@ -96,31 +105,6 @@ const TodoPage = () => {
       .catch(() => {
         toast.error("Failed to fetch tasks. Please try again.");
       });
-  };
-
-  const handleCreateTask = async (
-    e: FormEvent,
-    content: string,
-    userId: string
-  ) => {
-    e.preventDefault();
-
-    startTransition(async () => {
-      await createTask({ content, userId })
-        .then((res) => {
-          if (res.error) {
-            toast.error("Failed to create task. Please try again.");
-            return;
-          }
-
-          setTask("");
-          handleGetTasks();
-          toast.success("Task created successfully!");
-        })
-        .catch(() => {
-          toast.error("Failed to create task. Please try again.");
-        });
-    });
   };
 
   const handleDeleteTask = async (taskId: number) => {
@@ -155,23 +139,27 @@ const TodoPage = () => {
   const handleOpenDeleteDialog = ({
     taskId,
     content,
+    priorityLevel,
   }: {
     taskId: number;
     content: string;
+    priorityLevel: string;
   }) => {
     setIsDeleteDialogOpen(true);
-    setSelectedTask({ taskId, content });
+    setSelectedTask({ taskId, content, priorityLevel });
   };
 
   const handleOpenUpdateDialog = ({
     taskId,
     content,
+    priorityLevel,
   }: {
     taskId: number;
     content: string;
+    priorityLevel: string;
   }) => {
     setIsUpdateDialogOpen(true);
-    setSelectedTask({ taskId, content });
+    setSelectedTask({ taskId, content, priorityLevel });
   };
 
   useEffect(() => {
@@ -208,6 +196,7 @@ const TodoPage = () => {
           </Breadcrumb>
         </header>
 
+        {/* Status bar */}
         <div className="flex items-center justify-between w-full mb-6 bg-muted/50 rounded-lg p-4">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -236,32 +225,9 @@ const TodoPage = () => {
             </div>
 
             <div className="flex justify-between flex-1 gap-10">
-              {/* Add Task Form */}
-              <form
-                onSubmit={(e) => handleCreateTask(e, task, user?.id!)}
-                className="flex space-x-2 flex-1"
-              >
-                <Input
-                  type="text"
-                  className="flex-1"
-                  placeholder="What needs to be done?"
-                  onChange={(e) => setTask(e.target.value)}
-                  value={task}
-                  disabled={isPending}
-                />
-                <Button disabled={task.length === 0 || isPending} type="submit">
-                  {isPending ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Adding...
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="h-4 w-4" /> Add
-                    </>
-                  )}
-                </Button>
-              </form>
+              <Button onClick={() => setIsCreateDialogOpen(true)}>
+                Create task
+              </Button>
 
               {/* Filter */}
               <div className="flex justify-between items-center">
@@ -319,14 +285,27 @@ const TodoPage = () => {
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
-                        <span
+                        <div
                           className={cn(
-                            "flex-1",
+                            "flex-1 flex justify-start items-center gap-2",
                             task.is_done && "text-muted-foreground line-through"
                           )}
                         >
                           {task.content}
-                        </span>
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              task.priority_level === "HIGH" &&
+                                "bg-red-500 text-white",
+                              task.priority_level === "MEDIUM" &&
+                                "bg-yellow-500 text-white",
+                              task.priority_level === "LOW" &&
+                                "bg-green-500 text-white"
+                            )}
+                          >
+                            {task.priority_level}
+                          </Badge>
+                        </div>
                       </div>
                       <div className="flex items-center gap-1">
                         <TooltipProvider>
@@ -339,6 +318,7 @@ const TodoPage = () => {
                                   handleOpenUpdateDialog({
                                     taskId: task.id,
                                     content: task.content,
+                                    priorityLevel: task.priority_level,
                                   })
                                 }
                               >
@@ -359,6 +339,7 @@ const TodoPage = () => {
                                   handleOpenDeleteDialog({
                                     taskId: task.id,
                                     content: task.content,
+                                    priorityLevel: task.priority_level,
                                   })
                                 }
                               >
@@ -400,6 +381,17 @@ const TodoPage = () => {
       <UpdateSecretMessageModal
         setIsOpen={setIsUpdateDialogOpen}
         isOpen={isUpdateDialogOpen}
+        updateMessagesList={handleGetTasks}
+        selectedTask={{
+          taskId: selectedTask?.taskId,
+          content: selectedTask?.content,
+          priorityLevel: selectedTask?.priorityLevel,
+        }}
+      />
+
+      <CreateTaskModal
+        setIsOpen={setIsCreateDialogOpen}
+        isOpen={isCreateDialogOpen}
         updateMessagesList={handleGetTasks}
         selectedTask={{
           taskId: selectedTask?.taskId,
